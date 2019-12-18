@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Reactive Sandbox</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <div id="app"></div>
+    </div>
+    <script id="template" type="text/ractive">
+      <h1 style="color: {{color}}">{{greeting}}, meu nome é {{name}}</h1>
+      {{#if showAddress}}
+      <ul>
+        {{#address}}
+        <li>{{street}}</li>
+        <li>{{city}}</li>
+        <li>{{state}}</li>
+        {{/address}}
+      </ul>
+      {{else}}
+      <p>Endereço oculto</p>
+      {{/if}}
+      <button on-click="showAddress">
+        {{#if showAddress}}
+        Ocultar endereço
+        {{else}}
+        Exibir endereço
+        {{/if}}
+      </button>
+      <h3>Amigos</h3>
+      <ul>
+        {{#friends}}
+        <li>{{name}} - {{age}}</li>
+        {{/friends}}
+      </ul>
+      <jobs />
+    </script>
+    <script id="jobs" type="text/ractive">
+      <h3>Histórico profissional</h3>
+      <table class="table">
+        <tr>
+          <th>ID</th>
+          <th>Empresa</th>
+          <th>Cargo</th>
+          <th>Anos</th>
+        </tr>
+        {{#each jobs:i}}
+        <tr>
+          <td>{{i+1}}</td>
+          <td>{{company}}</td>
+          <td>{{title}}</td>
+          <td>{{years}}</td>
+        </tr>
+        {{/each}}
+      </table>
+      <h3>Adicionar emprego</h3>
+      <form on-submit="addJob">
+        <div class="form-group">
+          <input placeholder="Adicione a empresa" type="text" class="form-control" value="{{jobCompany}}">
+        </div>
+        <div class="form-group">
+          <input placeholder="Adicione o cargo" type="text" class="form-control" value="{{jobTitle}}">
+        </div>
+        <div class="form-group">
+          <input placeholder="Adicione os anos" type="text" class="form-control" value="{{jobYears}}">
+        </div>
+        <input class="btn btn-default" type="submit" value="Enviar">
+      </form>
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/ractive"></script>
+    <script>
+      const Jobs = Ractive.extend({
+        template: '#jobs',
+        isolated: true,
+        oninit: function() {
+          this.on('addJob', function() {
+            const newJob = {
+              company: this.get('jobCompany'),
+              title: this.get('jobTitle'),
+              years: this.get('jobYears')
+            };
+            this.push('jobs', newJob);
+            this.set('jobCompany', '');
+            this.set('jobTitle', '');
+            this.set('jobYears', '');
+
+            return false;
+          });
+        },
+        data: {
+          jobs: [
+            {
+              company: 'Milium',
+              title: 'Separador',
+              years: 5
+            },
+            {
+              company: 'Sociesc',
+              title: 'Professor',
+              years: 1
+            },
+            {
+              company: 'Geopan',
+              title: 'Assistente financeiro',
+              years: 3
+            },
+            {
+              company: 'Milium',
+              title: 'Analista financeiro',
+              years: 3
+            }
+          ],
+          jobCompany: '',
+          jobTitle: '',
+          jobYears: ''
+        }
+      });
+
+      const ractive = new Ractive({
+        el: '#app',
+        template: '#template',
+        components: { jobs: Jobs },
+        data: {
+          greeting: 'Oi mundo',
+          name: 'Thiago',
+          color: 'red',
+          address: {
+            street: 'Rua Albano Schmidt',
+            city: 'Joinville',
+            state: 'Santa Catarina'
+          },
+          friends: [
+            {
+              name: 'Blabla',
+              age: 21
+            },
+            {
+              name: 'Bleble',
+              age: 35
+            },
+            {
+              name: 'Blibli',
+              age: 29
+            }
+          ],
+          showAddress: false
+        }
+      });
+
+      ractive.set('color', 'blue');
+      // ractive.splice('jobs', 2, 1);
+      ractive.on('showAddress', function() {
+        ractive.toggle('showAddress');
+      });
+
+      ractive.set('name', 'Shawn');
+      ractive.set('friends.2.isBest', true);
+
+      ractive.observe('friends.*', function(newValue, oldValue, keypath) {
+        if (newValue.isBest) {
+          console.log(newValue.name + ' is my best friend');
+        }
+      });
+    </script>
+  </body>
+</html>
